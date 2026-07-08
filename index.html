@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>店舗連絡ガント管理</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <header class="hero">
+      <div>
+        <p class="eyebrow">Store Contact System</p>
+        <h1>店舗連絡ガント管理</h1>
+        <p class="lead">店名を入れるだけで、担当者・進捗・予定日をまとめて管理できます。</p>
+      </div>
+      <div class="hero-card">
+        <span class="hero-number" id="totalStores">0</span>
+        <span>登録店舗</span>
+      </div>
+    </header>
+
+    <section class="panel add-panel">
+      <h2>店舗を追加</h2>
+      <form id="storeForm" class="store-form">
+        <label>
+          店名
+          <input id="storeName" type="text" placeholder="例：CLUB SAMPLE" required />
+        </label>
+        <label>
+          エリア
+          <select id="storeArea">
+            <option>大阪 ミナミ</option>
+            <option>大阪 キタ</option>
+            <option>京都</option>
+            <option>神戸</option>
+            <option>名古屋</option>
+            <option>東京</option>
+            <option>広島</option>
+            <option>その他</option>
+          </select>
+        </label>
+        <label>
+          担当者
+          <select id="assignee">
+            <option>濱治</option>
+            <option>羽賀</option>
+            <option>佐藤</option>
+            <option>鈴木</option>
+            <option>安田</option>
+          </select>
+        </label>
+        <label>
+          ステータス
+          <select id="status">
+            <option>未連絡</option>
+            <option>連絡済</option>
+            <option>返信待ち</option>
+            <option>撮影決定</option>
+            <option>完了</option>
+          </select>
+        </label>
+        <label>
+          予定日
+          <input id="targetDate" type="date" />
+        </label>
+        <button type="submit">追加</button>
+      </form>
+    </section>
+
+    <section class="toolbar panel">
+      <div>
+        <label>
+          担当者で絞り込み
+          <select id="filterAssignee">
+            <option value="all">全員</option>
+            <option>濱治</option>
+            <option>羽賀</option>
+            <option>佐藤</option>
+            <option>鈴木</option>
+            <option>安田</option>
+          </select>
+        </label>
+      </div>
+      <div>
+        <label>
+          ステータスで絞り込み
+          <select id="filterStatus">
+            <option value="all">すべて</option>
+            <option>未連絡</option>
+            <option>連絡済</option>
+            <option>返信待ち</option>
+            <option>撮影決定</option>
+            <option>完了</option>
+          </select>
+        </label>
+      </div>
+      <button id="resetData" class="danger" type="button">初期データに戻す</button>
+    </section>
+
+    <main class="grid-layout">
+      <section class="panel list-panel">
+        <div class="section-heading">
+          <h2>店舗リスト</h2>
+          <p id="visibleCount">0件表示中</p>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>店名</th>
+                <th>エリア</th>
+                <th>担当</th>
+                <th>進捗</th>
+                <th>予定日</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="storeTable"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="panel gantt-panel">
+        <div class="section-heading">
+          <h2>ガントチャート</h2>
+          <p>進捗ごとにバーが伸びます</p>
+        </div>
+        <div id="ganttChart" class="gantt-chart"></div>
+      </section>
+    </main>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
