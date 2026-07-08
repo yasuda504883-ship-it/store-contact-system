@@ -1,4 +1,4 @@
-const STORAGE_KEY = "store-contact-system-v2";
+const STORAGE_KEY = "store-contact-system-v3";
 
 const areas = [
   "北海道・東北",
@@ -21,17 +21,65 @@ const assignees = ["濱治", "羽賀", "佐藤", "鈴木", "安田"];
 const statusOrder = ["未連絡", "連絡済", "返信待ち", "撮影決定", "完了"];
 const progressMap = { "未連絡": 12, "連絡済": 35, "返信待ち": 55, "撮影決定": 78, "完了": 100 };
 
-// ここにSTAR GUYS掲載店舗を追加していくと、店名入力時の予測候補に出ます。
-// name: 店名 / area: STAR GUYS掲載エリア
+// STAR GUYS掲載店舗マスター。ここを順番に増やしていきます。
 const storeMaster = [
-  { name: "SAMPLE OSAKA MINAMI", area: "大阪 ミナミ" },
-  { name: "SAMPLE OSAKA KITA", area: "大阪 キタ" },
-  { name: "SAMPLE KYOTO", area: "京都" },
-  { name: "SAMPLE KOBE", area: "神戸" },
-  { name: "SAMPLE NAGOYA", area: "名古屋" },
-  { name: "SAMPLE HIROSHIMA", area: "広島" },
-  { name: "SAMPLE TOKYO", area: "東京" },
-  { name: "SAMPLE FUKUOKA", area: "九州・沖縄" },
+  { name: "A-TOP -MONSTAR-", area: "大阪 ミナミ" },
+  { name: "Ai", area: "大阪 ミナミ" },
+  { name: "IR", area: "大阪 ミナミ" },
+  { name: "Ai$", area: "大阪 ミナミ" },
+  { name: "ACQUA-OSAKA HONTEN-", area: "大阪 ミナミ" },
+  { name: "ACQUA -本店-", area: "大阪 ミナミ" },
+  { name: "ASK", area: "大阪 ミナミ" },
+  { name: "ADAM", area: "大阪 ミナミ" },
+  { name: "ADAM RISE", area: "大阪 ミナミ" },
+  { name: "ADAM REX", area: "大阪 ミナミ" },
+  { name: "Addiction", area: "大阪 ミナミ" },
+  { name: "ATOM", area: "大阪 ミナミ" },
+  { name: "ATOM-ALLES-", area: "大阪 ミナミ" },
+  { name: "ATOM-VENUS-", area: "大阪 ミナミ" },
+  { name: "ATOM-Travis-", area: "大阪 ミナミ" },
+  { name: "ATOM-PLACE-", area: "大阪 ミナミ" },
+  { name: "ATOM-ROYAL-", area: "大阪 ミナミ" },
+  { name: "ATOM-CASTLE-", area: "大阪 ミナミ" },
+  { name: "AVALANCHE", area: "大阪 ミナミ" },
+  { name: "AMATERAS", area: "大阪 ミナミ" },
+  { name: "ALDEBARAN", area: "大阪 ミナミ" },
+  { name: "AWARD", area: "大阪 ミナミ" },
+  { name: "アンデッド", area: "大阪 ミナミ" },
+  { name: "&i", area: "大阪 ミナミ" },
+  { name: "AMBERS", area: "大阪 ミナミ" },
+  { name: "AMBIENT", area: "大阪 ミナミ" },
+  { name: "アンフェア", area: "大阪 ミナミ" },
+  { name: "アンリミテッド", area: "大阪 ミナミ" },
+  { name: "Are50", area: "大阪 ミナミ" },
+  { name: "INFINITY", area: "大阪 ミナミ" },
+  { name: "XXX -crest-", area: "大阪 ミナミ" },
+  { name: "XXX -nex-", area: "大阪 ミナミ" },
+  { name: "XXX -faith-", area: "大阪 ミナミ" },
+  { name: "EKT", area: "大阪 ミナミ" },
+  { name: "ETERNAL", area: "大阪 ミナミ" },
+  { name: "EDENOsaka", area: "大阪 ミナミ" },
+  { name: "ELDORADO 本店", area: "大阪 ミナミ" },
+  { name: "L4", area: "大阪 ミナミ" },
+  { name: "ACE CENTURION", area: "大阪 ミナミ" },
+  { name: "大阪男塾", area: "大阪 ミナミ" },
+  { name: "大阪男塾 一ノ瀬支店", area: "大阪 ミナミ" },
+  { name: "ORGODEMIR", area: "大阪 ミナミ" },
+  { name: "ALLSTAR -本店-", area: "大阪 ミナミ" },
+  { name: "GAIA", area: "大阪 ミナミ" },
+  { name: "KiJiMUNA", area: "大阪 ミナミ" },
+  { name: "KING", area: "大阪 ミナミ" },
+  { name: "King On Bunny", area: "大阪 ミナミ" },
+  { name: "GIFT", area: "大阪 ミナミ" },
+  { name: "CRØSS GUILD", area: "大阪 ミナミ" },
+  { name: "CHRONO", area: "大阪 ミナミ" },
+  { name: "GRACIA", area: "大阪 ミナミ" },
+  { name: "goofee", area: "大阪 ミナミ" },
+  { name: "Collection -osaka-", area: "大阪 ミナミ" },
+  { name: "CODE", area: "大阪 ミナミ" },
+  { name: "GORGEOUS", area: "大阪 ミナミ" },
+  { name: "GOAT", area: "大阪 ミナミ" },
+  { name: "GOLD", area: "大阪 ミナミ" },
 ];
 
 const seedStores = storeMaster.map((store, index) => ({
