@@ -1,4 +1,4 @@
-const STORAGE_KEY = "store-contact-system-v5";
+const STORAGE_KEY = "store-contact-system-v6";
 
 const areas = [
   "北海道・東北",
@@ -265,11 +265,19 @@ const storeAreaSelect = document.getElementById("storeArea");
 const storeSuggestions = document.getElementById("storeSuggestions");
 
 initSelects();
-initStoreSuggestions();
+updateStoreSuggestions();
+
+storeAreaSelect.addEventListener("change", () => {
+  storeNameInput.value = "";
+  updateStoreSuggestions(storeAreaSelect.value);
+});
 
 storeNameInput.addEventListener("input", () => {
   const matchedStore = findMasterStore(storeNameInput.value);
-  if (matchedStore) storeAreaSelect.value = matchedStore.area;
+  if (matchedStore) {
+    storeAreaSelect.value = matchedStore.area;
+    updateStoreSuggestions(matchedStore.area);
+  }
 });
 
 form.addEventListener("submit", (event) => {
@@ -288,6 +296,7 @@ form.addEventListener("submit", (event) => {
   stores.unshift(store);
   saveStores();
   form.reset();
+  updateStoreSuggestions(storeAreaSelect.value);
   render();
 });
 
@@ -301,7 +310,7 @@ resetData.addEventListener("click", () => {
 });
 
 function initSelects() {
-  fillSelect(storeAreaSelect, areas);
+  fillSelect(storeAreaSelect, Object.keys(storeGroups));
   fillSelect(document.getElementById("assignee"), assignees);
   fillSelect(document.getElementById("status"), statusOrder);
   fillSelect(filterArea, areas, true, "全エリア");
@@ -309,8 +318,9 @@ function initSelects() {
   fillSelect(filterStatus, statusOrder, true, "すべて");
 }
 
-function initStoreSuggestions() {
-  storeSuggestions.innerHTML = storeMaster
+function updateStoreSuggestions(area = storeAreaSelect.value) {
+  const source = storeMaster.filter((store) => !area || store.area === area);
+  storeSuggestions.innerHTML = source
     .map((store) => `<option value="${escapeHtml(store.name)}" label="${escapeHtml(store.area)}"></option>`)
     .join("");
 }
