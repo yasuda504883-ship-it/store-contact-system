@@ -98,6 +98,39 @@ ROMANCE
 ROI
 One direction
 `,
+  "六本木": `
+bar slave roppongi
+`,
+  "池袋": `
+Vi-Lay
+Lilian
+`,
+  "東京／浅草・小岩・錦糸町": `
+unknown
+`,
+  "千葉": `
+Az
+A-tLAS
+ALTEMIS
+ArayZ
+ARROWS -CHIBA-
+Architect
+Ark Royal
+TRIGGER
+FIORE
+BLACK ROSE
+ROMEO-CHIBA-
+`,
+  "神奈川／横浜・川崎": `
+SUGAR
+Dear
+Dewor
+ATHENA
+EVE -本店-
+`,
+  "埼玉／大宮": `
+alpha by ACQUA OMIYA
+`,
   "大阪 ミナミ": `
 A-TOP -MONSTAR-
 Ai
