@@ -21,20 +21,24 @@ const assignees = ["濱治", "羽賀", "佐藤", "鈴木", "安田"];
 const statusOrder = ["未連絡", "連絡済", "返信待ち", "撮影決定", "完了"];
 const progressMap = { "未連絡": 12, "連絡済": 35, "返信待ち": 55, "撮影決定": 78, "完了": 100 };
 
-const seedStores = [
-  ["SAMPLE OSAKA MINAMI", "大阪 ミナミ", "安田"],
-  ["SAMPLE OSAKA KITA", "大阪 キタ", "羽賀"],
-  ["SAMPLE KYOTO", "京都", "濱治"],
-  ["SAMPLE KOBE", "神戸", "鈴木"],
-  ["SAMPLE NAGOYA", "名古屋", "佐藤"],
-  ["SAMPLE HIROSHIMA", "広島", "佐藤"],
-  ["SAMPLE TOKYO", "東京", "濱治"],
-  ["SAMPLE FUKUOKA", "九州・沖縄", "安田"],
-].map(([name, area, assignee]) => ({
+// ここにSTAR GUYS掲載店舗を追加していくと、店名入力時の予測候補に出ます。
+// name: 店名 / area: STAR GUYS掲載エリア
+const storeMaster = [
+  { name: "SAMPLE OSAKA MINAMI", area: "大阪 ミナミ" },
+  { name: "SAMPLE OSAKA KITA", area: "大阪 キタ" },
+  { name: "SAMPLE KYOTO", area: "京都" },
+  { name: "SAMPLE KOBE", area: "神戸" },
+  { name: "SAMPLE NAGOYA", area: "名古屋" },
+  { name: "SAMPLE HIROSHIMA", area: "広島" },
+  { name: "SAMPLE TOKYO", area: "東京" },
+  { name: "SAMPLE FUKUOKA", area: "九州・沖縄" },
+];
+
+const seedStores = storeMaster.map((store, index) => ({
   id: crypto.randomUUID(),
-  name,
-  area,
-  assignee,
+  name: store.name,
+  area: store.area,
+  assignee: assignees[index % assignees.length],
   status: "未連絡",
   targetDate: "",
   memo: "",
@@ -54,15 +58,27 @@ const filterArea = document.getElementById("filterArea");
 const filterAssignee = document.getElementById("filterAssignee");
 const filterStatus = document.getElementById("filterStatus");
 const resetData = document.getElementById("resetData");
+const storeNameInput = document.getElementById("storeName");
+const storeAreaSelect = document.getElementById("storeArea");
+const storeSuggestions = document.getElementById("storeSuggestions");
 
 initSelects();
+initStoreSuggestions();
+
+storeNameInput.addEventListener("input", () => {
+  const matchedStore = findMasterStore(storeNameInput.value);
+  if (matchedStore) {
+    storeAreaSelect.value = matchedStore.area;
+  }
+});
 
 form.addEventListener("submit", (event) => {
   event.preventDefault();
+  const matchedStore = findMasterStore(storeNameInput.value);
   const store = {
     id: crypto.randomUUID(),
-    name: document.getElementById("storeName").value.trim(),
-    area: document.getElementById("storeArea").value,
+    name: storeNameInput.value.trim(),
+    area: matchedStore ? matchedStore.area : storeAreaSelect.value,
     assignee: document.getElementById("assignee").value,
     status: document.getElementById("status").value,
     targetDate: document.getElementById("targetDate").value,
@@ -85,12 +101,24 @@ resetData.addEventListener("click", () => {
 });
 
 function initSelects() {
-  fillSelect(document.getElementById("storeArea"), areas);
+  fillSelect(storeAreaSelect, areas);
   fillSelect(document.getElementById("assignee"), assignees);
   fillSelect(document.getElementById("status"), statusOrder);
   fillSelect(filterArea, areas, true, "全エリア");
   fillSelect(filterAssignee, assignees, true, "全員");
   fillSelect(filterStatus, statusOrder, true, "すべて");
+}
+
+function initStoreSuggestions() {
+  storeSuggestions.innerHTML = storeMaster
+    .map((store) => `<option value="${escapeHtml(store.name)}" label="${escapeHtml(store.area)}"></option>`)
+    .join("");
+}
+
+function findMasterStore(name) {
+  const normalizedName = name.trim().toLowerCase();
+  if (!normalizedName) return null;
+  return storeMaster.find((store) => store.name.toLowerCase() === normalizedName) || null;
 }
 
 function fillSelect(select, values, hasAll = false, allLabel = "すべて") {
