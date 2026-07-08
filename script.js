@@ -1,86 +1,153 @@
-const STORAGE_KEY = "store-contact-system-v3";
+const STORAGE_KEY = "store-contact-system-v4";
 
 const areas = [
-  "北海道・東北",
-  "東京",
-  "関東",
-  "東海",
-  "名古屋",
-  "関西",
-  "大阪 ミナミ",
-  "大阪 キタ",
-  "京都",
-  "神戸",
-  "中国・四国",
-  "広島",
-  "九州・沖縄",
-  "その他",
+  "北海道・東北", "東京", "関東", "東海", "名古屋", "関西",
+  "大阪 ミナミ", "大阪 キタ", "京都", "神戸", "中国・四国", "広島", "九州・沖縄", "その他",
 ];
 
 const assignees = ["濱治", "羽賀", "佐藤", "鈴木", "安田"];
 const statusOrder = ["未連絡", "連絡済", "返信待ち", "撮影決定", "完了"];
 const progressMap = { "未連絡": 12, "連絡済": 35, "返信待ち": 55, "撮影決定": 78, "完了": 100 };
 
-// STAR GUYS掲載店舗マスター。ここを順番に増やしていきます。
-const storeMaster = [
-  { name: "A-TOP -MONSTAR-", area: "大阪 ミナミ" },
-  { name: "Ai", area: "大阪 ミナミ" },
-  { name: "IR", area: "大阪 ミナミ" },
-  { name: "Ai$", area: "大阪 ミナミ" },
-  { name: "ACQUA-OSAKA HONTEN-", area: "大阪 ミナミ" },
-  { name: "ACQUA -本店-", area: "大阪 ミナミ" },
-  { name: "ASK", area: "大阪 ミナミ" },
-  { name: "ADAM", area: "大阪 ミナミ" },
-  { name: "ADAM RISE", area: "大阪 ミナミ" },
-  { name: "ADAM REX", area: "大阪 ミナミ" },
-  { name: "Addiction", area: "大阪 ミナミ" },
-  { name: "ATOM", area: "大阪 ミナミ" },
-  { name: "ATOM-ALLES-", area: "大阪 ミナミ" },
-  { name: "ATOM-VENUS-", area: "大阪 ミナミ" },
-  { name: "ATOM-Travis-", area: "大阪 ミナミ" },
-  { name: "ATOM-PLACE-", area: "大阪 ミナミ" },
-  { name: "ATOM-ROYAL-", area: "大阪 ミナミ" },
-  { name: "ATOM-CASTLE-", area: "大阪 ミナミ" },
-  { name: "AVALANCHE", area: "大阪 ミナミ" },
-  { name: "AMATERAS", area: "大阪 ミナミ" },
-  { name: "ALDEBARAN", area: "大阪 ミナミ" },
-  { name: "AWARD", area: "大阪 ミナミ" },
-  { name: "アンデッド", area: "大阪 ミナミ" },
-  { name: "&i", area: "大阪 ミナミ" },
-  { name: "AMBERS", area: "大阪 ミナミ" },
-  { name: "AMBIENT", area: "大阪 ミナミ" },
-  { name: "アンフェア", area: "大阪 ミナミ" },
-  { name: "アンリミテッド", area: "大阪 ミナミ" },
-  { name: "Are50", area: "大阪 ミナミ" },
-  { name: "INFINITY", area: "大阪 ミナミ" },
-  { name: "XXX -crest-", area: "大阪 ミナミ" },
-  { name: "XXX -nex-", area: "大阪 ミナミ" },
-  { name: "XXX -faith-", area: "大阪 ミナミ" },
-  { name: "EKT", area: "大阪 ミナミ" },
-  { name: "ETERNAL", area: "大阪 ミナミ" },
-  { name: "EDENOsaka", area: "大阪 ミナミ" },
-  { name: "ELDORADO 本店", area: "大阪 ミナミ" },
-  { name: "L4", area: "大阪 ミナミ" },
-  { name: "ACE CENTURION", area: "大阪 ミナミ" },
-  { name: "大阪男塾", area: "大阪 ミナミ" },
-  { name: "大阪男塾 一ノ瀬支店", area: "大阪 ミナミ" },
-  { name: "ORGODEMIR", area: "大阪 ミナミ" },
-  { name: "ALLSTAR -本店-", area: "大阪 ミナミ" },
-  { name: "GAIA", area: "大阪 ミナミ" },
-  { name: "KiJiMUNA", area: "大阪 ミナミ" },
-  { name: "KING", area: "大阪 ミナミ" },
-  { name: "King On Bunny", area: "大阪 ミナミ" },
-  { name: "GIFT", area: "大阪 ミナミ" },
-  { name: "CRØSS GUILD", area: "大阪 ミナミ" },
-  { name: "CHRONO", area: "大阪 ミナミ" },
-  { name: "GRACIA", area: "大阪 ミナミ" },
-  { name: "goofee", area: "大阪 ミナミ" },
-  { name: "Collection -osaka-", area: "大阪 ミナミ" },
-  { name: "CODE", area: "大阪 ミナミ" },
-  { name: "GORGEOUS", area: "大阪 ミナミ" },
-  { name: "GOAT", area: "大阪 ミナミ" },
-  { name: "GOLD", area: "大阪 ミナミ" },
-];
+const osakaMinamiNames = `
+A-TOP -MONSTAR-
+Ai
+IR
+Ai$
+ACQUA-OSAKA HONTEN-
+ACQUA -本店-
+ASK
+ADAM
+ADAM RISE
+ADAM REX
+Addiction
+ATOM
+ATOM-ALLES-
+ATOM-VENUS-
+ATOM-Travis-
+ATOM-PLACE-
+ATOM-ROYAL-
+ATOM-CASTLE-
+AVALANCHE
+AMATERAS
+ALDEBARAN
+AWARD
+アンデッド
+&i
+AMBERS
+AMBIENT
+アンフェア
+アンリミテッド
+Are50
+INFINITY
+XXX -crest-
+XXX -nex-
+XXX -faith-
+EKT
+ETERNAL
+EDENOsaka
+ELDORADO 本店
+L4
+ACE CENTURION
+大阪男塾
+大阪男塾 一ノ瀬支店
+ORGODEMIR
+ALLSTAR -本店-
+GAIA
+KiJiMUNA
+KING
+King On Bunny
+GIFT
+CRØSS GUILD
+CHRONO
+GRACIA
+goofee
+Collection -osaka-
+CODE
+GORGEOUS
+GOAT
+GOLD
+THE CLUB OSAKA
+THE MIYABI -OSAKA-
+THE ONE
+SIGNAL OSAKA
+Sirius☆☆☆☆☆
+ShinAi
+GENESIS
+GENTLY
+GENTLY DIVA
+GENTLY GREED
+GENTLEMAN’S CLUB GENTLE
+GIORGIO
+DILEMMA
+GO
+SQUARE OSAKA
+STYLE
+STADIUM
+SWAMP
+SWAMP FOG
+Celeste Osaka
+CENTRAL
+ZEPHYR OSAKA
+空-SORA osaka-
+TITLE 72c4
+宝地蔵 -紅-
+W
+DIAMONTÉ
+Dear's大阪
+Dear's BACHELOR
+Dear's Lucia
+Dear's大阪-2nd-
+TOP DANDY -OSAKA-
+TOP RUN
+TOP1ONE
+TORANOANA
+SSS
+neouniverse -REIGN-
+neo universe
+NEVER LAND
+NOVA
+Nox
+BINX
+BEAST
+PYRAMID
+FOUND OUT
+FUYUTSUKI -WHITE-
+FUYUTSUKI -OSAKA-
+FLOWER
+FREAK prod. by MERRY GO ROUND
+BLEACH
+BLUE OSAKA
+PRIDE
+PRIME
+HOST OF DREAM
+MARIA
+MERRY GO ROUND 本店
+MONSTAR-本店-
+YGGDRASILL -OSAKA-
+UNIVERSE
+UNIVERSE -core-
+UNIVERSE -zero-
+UNIVERSE -MAX-
+UNIVERSE -LUX-
+YOUth
+ReAL
+Rigel
+REVERSE
+RE:BLAZE
+REGOLITH -本店-
+LEGEND
+Retty
+LOX
+WORLD 大阪本店
+WORLD 大阪本店 2部
+`;
+
+// STAR GUYS掲載店舗マスター。サンプル店舗は削除済み。
+const storeMaster = osakaMinamiNames
+  .trim()
+  .split("\n")
+  .map((name) => ({ name: name.trim(), area: "大阪 ミナミ" }));
 
 const seedStores = storeMaster.map((store, index) => ({
   id: crypto.randomUUID(),
@@ -115,9 +182,7 @@ initStoreSuggestions();
 
 storeNameInput.addEventListener("input", () => {
   const matchedStore = findMasterStore(storeNameInput.value);
-  if (matchedStore) {
-    storeAreaSelect.value = matchedStore.area;
-  }
+  if (matchedStore) storeAreaSelect.value = matchedStore.area;
 });
 
 form.addEventListener("submit", (event) => {
