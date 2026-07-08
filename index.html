@@ -26,11 +26,12 @@
       <div class="section-heading">
         <div>
           <h2>店舗を追加</h2>
-          <p>掲載店舗が増えたらここから追加できます。</p>
+          <p>店名の一部を入力すると、登録済みの掲載店舗候補が表示されます。</p>
         </div>
       </div>
       <form id="storeForm" class="store-form">
-        <label>店名<input id="storeName" type="text" placeholder="例：CLUB SAMPLE" required /></label>
+        <label>店名<input id="storeName" type="text" list="storeSuggestions" placeholder="例：SAMPLE / CLUB / 店名の一部" autocomplete="off" required /></label>
+        <datalist id="storeSuggestions"></datalist>
         <label>エリア<select id="storeArea"></select></label>
         <label>担当者<select id="assignee"></select></label>
         <label>ステータス<select id="status"></select></label>
