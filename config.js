@@ -1,5 +1,3 @@
 window.APP_CONFIG = {
-  // Apps ScriptをWebアプリとしてデプロイした後、発行されたURLをここに入れます。
-  // 例: https://script.google.com/macros/s/xxxxxxxxxxxxxxxx/exec
-  API_URL: "",
+  API_URL: "https://script.google.com/macros/s/AKfycbxthP1v2g51ffW-B6MDUTXfU97rcUqKev5sCDJNA9BeqETREfLBlgMlX5tYt0ltKrht/exec",
 };
