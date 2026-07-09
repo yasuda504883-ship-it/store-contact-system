@@ -1,4 +1,4 @@
-const STORAGE_KEY = "store-contact-system-v9";
+const STORAGE_KEY = "store-contact-system-v10";
 const API_URL = window.APP_CONFIG?.API_URL || "";
 
 const storeGroups = window.STORE_GROUPS || {};
@@ -6,6 +6,7 @@ const areas = Object.keys(storeGroups);
 const assignees = ["濱治", "羽賀", "佐藤", "鈴木", "安田"];
 const contactStatusOrder = ["未連絡", "連絡済", "返信待ち"];
 const shootingStatusOrder = ["未設定", "撮影日確定", "撮影済", "完了"];
+const caseTypeOrder = ["ホスト特集", "トップグラビア", "有料宣材", "30秒PV", "有料動画", "その他"];
 const statusOrder = contactStatusOrder;
 const progressMap = { "未連絡": 12, "連絡済": 45, "返信待ち": 65 };
 
@@ -25,6 +26,7 @@ const seedStores = storeMaster.map((store, index) => ({
   assignee: assignees[index % assignees.length],
   status: "未連絡",
   shootingStatus: "未設定",
+  caseType: "その他",
   targetDate: "",
   lastContactDate: "",
   memo: "",
@@ -84,6 +86,7 @@ form.addEventListener("submit", (event) => {
     assignee: document.getElementById("assignee").value,
     status: document.getElementById("status").value,
     shootingStatus: "未設定",
+    caseType: document.getElementById("caseType").value,
     targetDate: document.getElementById("targetDate").value,
     lastContactDate: "",
     memo: "",
@@ -112,6 +115,7 @@ function initSelects() {
   fillSelect(storeAreaSelect, areas);
   fillSelect(document.getElementById("assignee"), assignees);
   fillSelect(document.getElementById("status"), contactStatusOrder);
+  fillSelect(document.getElementById("caseType"), caseTypeOrder);
   fillSelect(filterArea, areas, true, "全エリア");
   fillSelect(filterAssignee, assignees, true, "全員");
   fillSelect(filterStatus, contactStatusOrder, true, "すべて");
@@ -144,6 +148,7 @@ function loadStores() {
     return parsed.map((store) => ({
       ...store,
       shootingStatus: store.shootingStatus || "未設定",
+      caseType: normalizeCaseType(store.caseType),
       status: normalizeContactStatus(store.status),
     }));
   } catch {
@@ -236,6 +241,7 @@ function renderAreaList(items) {
 
 function storeCard(store) {
   const shootingStatus = store.shootingStatus || "未設定";
+  const caseType = normalizeCaseType(store.caseType);
   return `
     <div class="store-card">
       <div class="store-main">
@@ -245,6 +251,7 @@ function storeCard(store) {
       ${selectHtml("assignee", store.id, assignees, store.assignee)}
       ${selectHtml("status", store.id, contactStatusOrder, store.status, `badge status-${store.status}`)}
       ${selectHtml("shootingStatus", store.id, shootingStatusOrder, shootingStatus, `badge shooting-${shootingStatus}`)}
+      ${selectHtml("caseType", store.id, caseTypeOrder, caseType, `badge case-${caseType}`)}
       <input type="date" value="${store.targetDate || ""}" data-action="targetDate" data-id="${store.id}" />
       <div class="row-actions">
         <button type="button" data-action="contactNext" data-id="${store.id}">連絡進行</button>
@@ -265,7 +272,9 @@ function selectHtml(action, id, options, selected, className = "") {
 function updateStore(id, key, value) {
   const store = stores.find((item) => item.id === id);
   if (!store) return;
-  store[key] = key === "status" ? normalizeContactStatus(value) : value;
+  if (key === "status") store[key] = normalizeContactStatus(value);
+  else if (key === "caseType") store[key] = normalizeCaseType(value);
+  else store[key] = value;
   saveStores();
   syncStoreToSheet(store);
   render();
@@ -300,6 +309,10 @@ function normalizeContactStatus(status) {
   return "未連絡";
 }
 
+function normalizeCaseType(type) {
+  return caseTypeOrder.includes(type) ? type : "その他";
+}
+
 function renderGantt(items) {
   ganttChart.innerHTML = "";
   if (items.length === 0) {
@@ -314,7 +327,7 @@ function renderGantt(items) {
     item.innerHTML = `
       <div class="gantt-top">
         <strong>${escapeHtml(store.name)}</strong>
-        <span class="gantt-meta">${escapeHtml(store.area)} / ${escapeHtml(store.assignee)} / ${escapeHtml(store.status)} / ${escapeHtml(store.shootingStatus || "未設定")}</span>
+        <span class="gantt-meta">${escapeHtml(store.area)} / ${escapeHtml(store.assignee)} / ${escapeHtml(store.status)} / ${escapeHtml(store.shootingStatus || "未設定")} / ${escapeHtml(normalizeCaseType(store.caseType))}</span>
       </div>
       <div class="gantt-track"><div class="gantt-bar" style="width:${progress}%"></div></div>
     `;
@@ -343,6 +356,7 @@ function toSheetSales(store) {
     "担当者": store.assignee,
     "ステータス": store.status,
     "撮影ステータス": store.shootingStatus || "未設定",
+    "案件種別": normalizeCaseType(store.caseType),
     "最終連絡日": store.lastContactDate || "",
     "次回連絡日": store.targetDate || "",
     "メモ": store.memo || "",
@@ -361,6 +375,7 @@ function fromSheetRows(storeRows, salesRows) {
       assignee: sales["担当者"] || "安田",
       status: normalizeContactStatus(sales["ステータス"] || "未連絡"),
       shootingStatus: sales["撮影ステータス"] || "未設定",
+      caseType: normalizeCaseType(sales["案件種別"] || "その他"),
       lastContactDate: sales["最終連絡日"] || "",
       targetDate: sales["次回連絡日"] || "",
       memo: sales["メモ"] || "",
