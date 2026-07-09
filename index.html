@@ -12,16 +12,16 @@
       <div>
         <p class="eyebrow">STAR GUYS Store Contact</p>
         <h1>掲載店舗 連絡管理</h1>
-        <p class="lead">STAR GUYSのエリア構成に合わせて、店舗ごとの連絡状況を管理します。</p>
+        <p class="lead">店舗マスターから必要な案件だけを追加して、連絡・撮影状況を管理します。</p>
       </div>
       <div class="hero-stats">
-        <div class="hero-card"><span class="hero-number" id="totalStores">0</span><span>登録店舗</span></div>
+        <div class="hero-card"><span class="hero-number" id="totalStores">0</span><span>登録案件</span></div>
         <div class="hero-card"><span class="hero-number" id="visibleStores">0</span><span>表示中</span></div>
       </div>
     </header>
 
     <nav class="app-tabs" aria-label="ページ切り替え">
-      <button class="tab-button active" type="button" data-view="stores">店舗管理</button>
+      <button class="tab-button active" type="button" data-view="stores">案件管理</button>
       <button class="tab-button" type="button" data-view="gantt">ガント</button>
     </nav>
 
@@ -31,8 +31,8 @@
       <section class="panel add-panel">
         <div class="section-heading">
           <div>
-            <h2>店舗を追加</h2>
-            <p>エリアを選ぶと、そのエリアの店舗だけが候補に出ます。店舗を選ぶとエリアも自動で確定します。</p>
+            <h2>案件を追加</h2>
+            <p>店舗候補は残したまま、実際に動かす案件だけを追加できます。</p>
           </div>
         </div>
         <form id="storeForm" class="store-form">
@@ -48,11 +48,11 @@
       </section>
 
       <section class="toolbar panel">
-        <label>店名検索<input id="searchText" type="search" placeholder="店名で検索" /></label>
+        <label>店名・メモ検索<input id="searchText" type="search" placeholder="店名やメモで検索" /></label>
         <label>エリアで絞り込み<select id="filterArea"><option value="all">全エリア</option></select></label>
         <label>担当者で絞り込み<select id="filterAssignee"><option value="all">全員</option></select></label>
         <label>ステータスで絞り込み<select id="filterStatus"><option value="all">すべて</option></select></label>
-        <button id="resetData" class="danger" type="button">初期データに戻す</button>
+        <button id="resetData" class="danger" type="button">全案件削除</button>
       </section>
 
       <section class="panel sync-panel">
@@ -62,14 +62,14 @@
         </div>
         <div class="sync-actions">
           <button id="loadSheet" type="button">スプシから読込</button>
-          <button id="seedSheet" type="button">現在の店舗をスプシへ初期反映</button>
+          <button id="seedSheet" type="button">現在の案件をスプシへ反映</button>
         </div>
       </section>
 
       <section class="panel area-panel">
         <div class="section-heading">
           <div>
-            <h2>エリア別 掲載店舗</h2>
+            <h2>エリア別 案件一覧</h2>
             <p id="visibleCount">0件表示中</p>
           </div>
         </div>
