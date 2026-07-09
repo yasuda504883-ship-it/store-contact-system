@@ -29,6 +29,7 @@ function handleRequest(e) {
     else if (action === 'updateSales') result = updateSales(body.sales);
     else if (action === 'bulkUpsert') result = bulkUpsert(body.stores || []);
     else if (action === 'deleteStore') result = deleteStore(body.storeId);
+    else if (action === 'clearAllCases') result = clearAllCases();
     else result = { ok: false, error: 'unknown action: ' + action };
     return outputResponse(result, callback);
   } catch (error) {
@@ -154,6 +155,17 @@ function deleteStore(storeId) {
   });
   addLog('deleteStore', storeId, '');
   return { ok: true, storeId };
+}
+
+function clearAllCases() {
+  const ss = getSpreadsheet();
+  [SHEETS.stores, SHEETS.sales].forEach((sheetName) => {
+    const sheet = ss.getSheetByName(sheetName);
+    const lastRow = sheet.getLastRow();
+    if (lastRow > 1) sheet.deleteRows(2, lastRow - 1);
+  });
+  addLog('clearAllCases', 'all', '全案件削除');
+  return { ok: true };
 }
 
 function findRowById(sheet, id) {
