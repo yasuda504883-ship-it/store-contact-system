@@ -1,4 +1,4 @@
-const STORAGE_KEY = "store-contact-system-v10";
+const STORAGE_KEY = "store-contact-system-v11";
 const API_URL = window.APP_CONFIG?.API_URL || "";
 
 const storeGroups = window.STORE_GROUPS || {};
@@ -7,16 +7,10 @@ const assignees = ["濱治", "羽賀", "佐藤", "鈴木", "安田"];
 const contactStatusOrder = ["未連絡", "連絡済", "返信待ち"];
 const shootingStatusOrder = ["未設定", "撮影日確定", "撮影済", "完了"];
 const caseTypeOrder = ["ホスト特集", "トップグラビア", "有料宣材", "30秒PV", "有料動画", "その他"];
-const statusOrder = contactStatusOrder;
 const progressMap = { "未連絡": 12, "連絡済": 45, "返信待ち": 65 };
 
 const storeMaster = Object.entries(storeGroups).flatMap(([area, names]) =>
-  names
-    .trim()
-    .split("\n")
-    .map((name) => name.trim())
-    .filter(Boolean)
-    .map((name) => ({ name, area }))
+  names.trim().split("\n").map((name) => name.trim()).filter(Boolean).map((name) => ({ name, area }))
 );
 
 const seedStores = storeMaster.map((store, index) => ({
@@ -53,6 +47,7 @@ const syncStatus = document.getElementById("syncStatus");
 const loadSheetButton = document.getElementById("loadSheet");
 const seedSheetButton = document.getElementById("seedSheet");
 
+initTabs();
 initSelects();
 updateStoreSuggestions();
 render();
@@ -111,6 +106,18 @@ resetData.addEventListener("click", () => {
   render();
 });
 
+function initTabs() {
+  document.querySelectorAll(".tab-button").forEach((button) => {
+    button.addEventListener("click", () => {
+      const view = button.dataset.view;
+      document.querySelectorAll(".tab-button").forEach((item) => item.classList.toggle("active", item === button));
+      document.getElementById("storesView").classList.toggle("active", view === "stores");
+      document.getElementById("ganttView").classList.toggle("active", view === "gantt");
+      if (view === "gantt") renderGantt(getFilteredStores());
+    });
+  });
+}
+
 function initSelects() {
   fillSelect(storeAreaSelect, areas);
   fillSelect(document.getElementById("assignee"), assignees);
@@ -123,9 +130,7 @@ function initSelects() {
 
 function updateStoreSuggestions(area = storeAreaSelect.value) {
   const source = storeMaster.filter((store) => !area || store.area === area);
-  storeSuggestions.innerHTML = source
-    .map((store) => `<option value="${escapeHtml(store.name)}" label="${escapeHtml(store.area)}"></option>`)
-    .join("");
+  storeSuggestions.innerHTML = source.map((store) => `<option value="${escapeHtml(store.name)}" label="${escapeHtml(store.area)}"></option>`).join("");
 }
 
 function findMasterStore(name) {
@@ -150,6 +155,7 @@ function loadStores() {
       shootingStatus: store.shootingStatus || "未設定",
       caseType: normalizeCaseType(store.caseType),
       status: normalizeContactStatus(store.status),
+      memo: store.memo || "",
     }));
   } catch {
     return [...seedStores];
@@ -163,7 +169,7 @@ function saveStores() {
 function getFilteredStores() {
   const keyword = searchText.value.trim().toLowerCase();
   return stores.filter((store) => {
-    const keywordMatch = !keyword || store.name.toLowerCase().includes(keyword);
+    const keywordMatch = !keyword || store.name.toLowerCase().includes(keyword) || (store.memo || "").toLowerCase().includes(keyword);
     const areaMatch = filterArea.value === "all" || store.area === filterArea.value;
     const assigneeMatch = filterAssignee.value === "all" || store.assignee === filterAssignee.value;
     const statusMatch = filterStatus.value === "all" || store.status === filterStatus.value;
@@ -234,6 +240,10 @@ function renderAreaList(items) {
     input.addEventListener("change", (event) => updateStore(event.target.dataset.id, event.target.dataset.action, event.target.value));
   });
 
+  areaList.querySelectorAll("textarea[data-action='memo']").forEach((textarea) => {
+    textarea.addEventListener("blur", (event) => updateStore(event.target.dataset.id, "memo", event.target.value));
+  });
+
   areaList.querySelectorAll("button[data-action]").forEach((button) => {
     button.addEventListener("click", () => handleRowAction(button.dataset.action, button.dataset.id));
   });
@@ -242,11 +252,12 @@ function renderAreaList(items) {
 function storeCard(store) {
   const shootingStatus = store.shootingStatus || "未設定";
   const caseType = normalizeCaseType(store.caseType);
+  const memoPreview = store.memo ? escapeHtml(store.memo.slice(0, 24)) : "メモなし";
   return `
     <div class="store-card">
       <div class="store-main">
         <strong>${escapeHtml(store.name)}</strong>
-        <small>${escapeHtml(store.area)}</small>
+        <small>${escapeHtml(store.area)} / ${memoPreview}</small>
       </div>
       ${selectHtml("assignee", store.id, assignees, store.assignee)}
       ${selectHtml("status", store.id, contactStatusOrder, store.status, `badge status-${store.status}`)}
@@ -255,18 +266,19 @@ function storeCard(store) {
       <input type="date" value="${store.targetDate || ""}" data-action="targetDate" data-id="${store.id}" />
       <div class="row-actions">
         <button type="button" data-action="contactNext" data-id="${store.id}">連絡進行</button>
+        <button type="button" data-action="toggleMemo" data-id="${store.id}">メモ</button>
         <button type="button" class="danger" data-action="delete" data-id="${store.id}">削除</button>
+      </div>
+      <div class="memo-row" id="memo-${escapeId(store.id)}" hidden>
+        <textarea data-action="memo" data-id="${store.id}" placeholder="連絡内容・反応・次回やることなどを入力">${escapeHtml(store.memo || "")}</textarea>
+        <p>入力後、欄の外をクリックすると保存されます。</p>
       </div>
     </div>
   `;
 }
 
 function selectHtml(action, id, options, selected, className = "") {
-  return `
-    <select class="${className}" data-action="${action}" data-id="${id}">
-      ${options.map((option) => `<option ${selected === option ? "selected" : ""}>${option}</option>`).join("")}
-    </select>
-  `;
+  return `<select class="${className}" data-action="${action}" data-id="${id}">${options.map((option) => `<option ${selected === option ? "selected" : ""}>${option}</option>`).join("")}</select>`;
 }
 
 function updateStore(id, key, value) {
@@ -292,6 +304,11 @@ function handleRowAction(action, id) {
     store.status = nextContactStatus(store.status);
     if (store.status === "連絡済") store.lastContactDate = new Date().toISOString().slice(0, 10);
     syncStoreToSheet(store);
+  }
+  if (action === "toggleMemo") {
+    const memo = document.getElementById(`memo-${escapeId(id)}`);
+    if (memo) memo.hidden = !memo.hidden;
+    return;
   }
   saveStores();
   render();
@@ -320,7 +337,7 @@ function renderGantt(items) {
     return;
   }
 
-  items.slice(0, 40).forEach((store) => {
+  items.forEach((store) => {
     const progress = progressMap[store.status] || 0;
     const item = document.createElement("div");
     item.className = "gantt-item";
@@ -330,6 +347,7 @@ function renderGantt(items) {
         <span class="gantt-meta">${escapeHtml(store.area)} / ${escapeHtml(store.assignee)} / ${escapeHtml(store.status)} / ${escapeHtml(store.shootingStatus || "未設定")} / ${escapeHtml(normalizeCaseType(store.caseType))}</span>
       </div>
       <div class="gantt-track"><div class="gantt-bar" style="width:${progress}%"></div></div>
+      ${store.memo ? `<p class="gantt-memo">${escapeHtml(store.memo)}</p>` : ""}
     `;
     ganttChart.appendChild(item);
   });
@@ -392,24 +410,17 @@ function apiGet(action, data = {}) {
   return new Promise((resolve, reject) => {
     const callbackName = `jsonp_${Date.now()}_${Math.random().toString(36).slice(2)}`;
     const script = document.createElement("script");
-    const params = new URLSearchParams({
-      action,
-      callback: callbackName,
-      data: JSON.stringify({ action, ...data }),
-    });
-
+    const params = new URLSearchParams({ action, callback: callbackName, data: JSON.stringify({ action, ...data }) });
     window[callbackName] = (response) => {
       delete window[callbackName];
       script.remove();
       resolve(response);
     };
-
     script.onerror = () => {
       delete window[callbackName];
       script.remove();
       reject(new Error("API通信に失敗しました"));
     };
-
     script.src = `${API_URL}?${params.toString()}`;
     document.body.appendChild(script);
   });
@@ -430,13 +441,11 @@ async function loadFromSheet() {
     setSyncStatus("スプシから読み込み中...");
     const response = await apiGet("read");
     if (!response.ok) throw new Error(response.error || "読み込みに失敗しました");
-
     const sheetStores = fromSheetRows(response.stores || [], response.sales || []);
     if (sheetStores.length === 0) {
       setSyncStatus("スプシは空です。先に「現在の店舗をスプシへ初期反映」を押してください。");
       return;
     }
-
     stores = sheetStores;
     saveStores();
     render();
@@ -449,21 +458,13 @@ async function loadFromSheet() {
 function seedSheetFromCurrentStores() {
   if (!confirm("現在表示している店舗データをスプレッドシートへ反映しますか？")) return;
   setSyncStatus("スプシへ初期反映中... 数十秒かかる場合があります。");
-
-  const items = stores.map((store) => ({
-    store: toSheetStore(store),
-    sales: toSheetSales(store),
-  }));
-
+  const items = stores.map((store) => ({ store: toSheetStore(store), sales: toSheetSales(store) }));
   const chunks = [];
   for (let i = 0; i < items.length; i += 30) chunks.push(items.slice(i, i + 30));
-
   chunks.forEach((chunk, index) => {
     setTimeout(() => {
       apiPost("bulkUpsert", { stores: chunk });
-      if (index === chunks.length - 1) {
-        setSyncStatus(`初期反映を送信しました。少し待ってからスプシを確認してください。送信件数: ${items.length}件`);
-      }
+      if (index === chunks.length - 1) setSyncStatus(`初期反映を送信しました。少し待ってからスプシを確認してください。送信件数: ${items.length}件`);
     }, index * 1200);
   });
 }
@@ -477,6 +478,10 @@ function syncStoreToSheet(store) {
 function deleteStoreFromSheet(id) {
   apiPost("deleteStore", { storeId: id });
   setSyncStatus("削除をスプシへ送信しました");
+}
+
+function escapeId(value) {
+  return String(value).replace(/[^a-zA-Z0-9_-]/g, "_");
 }
 
 function escapeHtml(value) {
