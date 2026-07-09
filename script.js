@@ -1,11 +1,13 @@
-const STORAGE_KEY = "store-contact-system-v8";
+const STORAGE_KEY = "store-contact-system-v9";
 const API_URL = window.APP_CONFIG?.API_URL || "";
 
 const storeGroups = window.STORE_GROUPS || {};
 const areas = Object.keys(storeGroups);
 const assignees = ["濱治", "羽賀", "佐藤", "鈴木", "安田"];
-const statusOrder = ["未連絡", "連絡済", "返信待ち", "撮影決定", "完了"];
-const progressMap = { "未連絡": 12, "連絡済": 35, "返信待ち": 55, "撮影決定": 78, "完了": 100 };
+const contactStatusOrder = ["未連絡", "連絡済", "返信待ち"];
+const shootingStatusOrder = ["未設定", "撮影日確定", "撮影済", "完了"];
+const statusOrder = contactStatusOrder;
+const progressMap = { "未連絡": 12, "連絡済": 45, "返信待ち": 65 };
 
 const storeMaster = Object.entries(storeGroups).flatMap(([area, names]) =>
   names
@@ -22,6 +24,7 @@ const seedStores = storeMaster.map((store, index) => ({
   area: store.area,
   assignee: assignees[index % assignees.length],
   status: "未連絡",
+  shootingStatus: "未設定",
   targetDate: "",
   lastContactDate: "",
   memo: "",
@@ -80,6 +83,7 @@ form.addEventListener("submit", (event) => {
     area,
     assignee: document.getElementById("assignee").value,
     status: document.getElementById("status").value,
+    shootingStatus: "未設定",
     targetDate: document.getElementById("targetDate").value,
     lastContactDate: "",
     memo: "",
@@ -107,10 +111,10 @@ resetData.addEventListener("click", () => {
 function initSelects() {
   fillSelect(storeAreaSelect, areas);
   fillSelect(document.getElementById("assignee"), assignees);
-  fillSelect(document.getElementById("status"), statusOrder);
+  fillSelect(document.getElementById("status"), contactStatusOrder);
   fillSelect(filterArea, areas, true, "全エリア");
   fillSelect(filterAssignee, assignees, true, "全員");
-  fillSelect(filterStatus, statusOrder, true, "すべて");
+  fillSelect(filterStatus, contactStatusOrder, true, "すべて");
 }
 
 function updateStoreSuggestions(area = storeAreaSelect.value) {
@@ -136,7 +140,12 @@ function loadStores() {
   if (!saved) return [...seedStores];
   try {
     const parsed = JSON.parse(saved);
-    return Array.isArray(parsed) ? parsed : [...seedStores];
+    if (!Array.isArray(parsed)) return [...seedStores];
+    return parsed.map((store) => ({
+      ...store,
+      shootingStatus: store.shootingStatus || "未設定",
+      status: normalizeContactStatus(store.status),
+    }));
   } catch {
     return [...seedStores];
   }
@@ -168,10 +177,14 @@ function render() {
 }
 
 function renderSummary() {
-  summaryCards.innerHTML = statusOrder.map((status) => {
-    const count = stores.filter((store) => store.status === status).length;
-    return `<div class="summary-card"><span>${status}</span><strong>${count}</strong></div>`;
-  }).join("");
+  const shootingFixed = stores.filter((store) => store.shootingStatus === "撮影日確定").length;
+  summaryCards.innerHTML = [
+    ...contactStatusOrder.map((status) => {
+      const count = stores.filter((store) => store.status === status).length;
+      return `<div class="summary-card"><span>${status}</span><strong>${count}</strong></div>`;
+    }),
+    `<div class="summary-card"><span>撮影日確定</span><strong>${shootingFixed}</strong></div>`,
+  ].join("");
 }
 
 function renderAreaList(items) {
@@ -222,6 +235,7 @@ function renderAreaList(items) {
 }
 
 function storeCard(store) {
+  const shootingStatus = store.shootingStatus || "未設定";
   return `
     <div class="store-card">
       <div class="store-main">
@@ -229,10 +243,11 @@ function storeCard(store) {
         <small>${escapeHtml(store.area)}</small>
       </div>
       ${selectHtml("assignee", store.id, assignees, store.assignee)}
-      ${selectHtml("status", store.id, statusOrder, store.status, `badge status-${store.status}`)}
+      ${selectHtml("status", store.id, contactStatusOrder, store.status, `badge status-${store.status}`)}
+      ${selectHtml("shootingStatus", store.id, shootingStatusOrder, shootingStatus, `badge shooting-${shootingStatus}`)}
       <input type="date" value="${store.targetDate || ""}" data-action="targetDate" data-id="${store.id}" />
       <div class="row-actions">
-        <button type="button" data-action="next" data-id="${store.id}">次へ</button>
+        <button type="button" data-action="contactNext" data-id="${store.id}">連絡進行</button>
         <button type="button" class="danger" data-action="delete" data-id="${store.id}">削除</button>
       </div>
     </div>
@@ -250,7 +265,7 @@ function selectHtml(action, id, options, selected, className = "") {
 function updateStore(id, key, value) {
   const store = stores.find((item) => item.id === id);
   if (!store) return;
-  store[key] = value;
+  store[key] = key === "status" ? normalizeContactStatus(value) : value;
   saveStores();
   syncStoreToSheet(store);
   render();
@@ -264,13 +279,25 @@ function handleRowAction(action, id) {
     stores = stores.filter((item) => item.id !== id);
     deleteStoreFromSheet(id);
   }
-  if (action === "next") {
-    const currentIndex = statusOrder.indexOf(store.status);
-    store.status = statusOrder[Math.min(currentIndex + 1, statusOrder.length - 1)];
+  if (action === "contactNext") {
+    store.status = nextContactStatus(store.status);
+    if (store.status === "連絡済") store.lastContactDate = new Date().toISOString().slice(0, 10);
     syncStoreToSheet(store);
   }
   saveStores();
   render();
+}
+
+function nextContactStatus(status) {
+  if (status === "未連絡") return "連絡済";
+  if (status === "連絡済") return "返信待ち";
+  return "連絡済";
+}
+
+function normalizeContactStatus(status) {
+  if (contactStatusOrder.includes(status)) return status;
+  if (status === "撮影決定" || status === "完了") return "返信待ち";
+  return "未連絡";
 }
 
 function renderGantt(items) {
@@ -287,7 +314,7 @@ function renderGantt(items) {
     item.innerHTML = `
       <div class="gantt-top">
         <strong>${escapeHtml(store.name)}</strong>
-        <span class="gantt-meta">${escapeHtml(store.area)} / ${escapeHtml(store.assignee)} / ${escapeHtml(store.status)}</span>
+        <span class="gantt-meta">${escapeHtml(store.area)} / ${escapeHtml(store.assignee)} / ${escapeHtml(store.status)} / ${escapeHtml(store.shootingStatus || "未設定")}</span>
       </div>
       <div class="gantt-track"><div class="gantt-bar" style="width:${progress}%"></div></div>
     `;
@@ -315,6 +342,7 @@ function toSheetSales(store) {
     "店舗ID": store.id,
     "担当者": store.assignee,
     "ステータス": store.status,
+    "撮影ステータス": store.shootingStatus || "未設定",
     "最終連絡日": store.lastContactDate || "",
     "次回連絡日": store.targetDate || "",
     "メモ": store.memo || "",
@@ -331,7 +359,8 @@ function fromSheetRows(storeRows, salesRows) {
       name: row["店舗名"] || "",
       area: row["エリア"] || "その他",
       assignee: sales["担当者"] || "安田",
-      status: sales["ステータス"] || "未連絡",
+      status: normalizeContactStatus(sales["ステータス"] || "未連絡"),
+      shootingStatus: sales["撮影ステータス"] || "未設定",
       lastContactDate: sales["最終連絡日"] || "",
       targetDate: sales["次回連絡日"] || "",
       memo: sales["メモ"] || "",
@@ -411,7 +440,6 @@ function seedSheetFromCurrentStores() {
     sales: toSheetSales(store),
   }));
 
-  // Apps Scriptの実行時間と通信制限を避けるため、30件ずつ送ります。
   const chunks = [];
   for (let i = 0; i < items.length; i += 30) chunks.push(items.slice(i, i + 30));
 
