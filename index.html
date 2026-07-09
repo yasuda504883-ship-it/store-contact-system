@@ -20,47 +20,52 @@
       </div>
     </header>
 
+    <nav class="app-tabs" aria-label="ページ切り替え">
+      <button class="tab-button active" type="button" data-view="stores">店舗管理</button>
+      <button class="tab-button" type="button" data-view="gantt">ガント</button>
+    </nav>
+
     <section class="summary-grid" id="summaryCards"></section>
 
-    <section class="panel add-panel">
-      <div class="section-heading">
-        <div>
-          <h2>店舗を追加</h2>
-          <p>エリアを選ぶと、そのエリアの店舗だけが候補に出ます。店舗を選ぶとエリアも自動で確定します。</p>
+    <section id="storesView" class="view-section active">
+      <section class="panel add-panel">
+        <div class="section-heading">
+          <div>
+            <h2>店舗を追加</h2>
+            <p>エリアを選ぶと、そのエリアの店舗だけが候補に出ます。店舗を選ぶとエリアも自動で確定します。</p>
+          </div>
         </div>
-      </div>
-      <form id="storeForm" class="store-form">
-        <label>店名<input id="storeName" type="text" list="storeSuggestions" placeholder="例：ETERNAL / ACQUA / 店名の一部" autocomplete="off" required /></label>
-        <datalist id="storeSuggestions"></datalist>
-        <label>エリア<select id="storeArea"></select></label>
-        <label>担当者<select id="assignee"></select></label>
-        <label>連絡ステータス<select id="status"></select></label>
-        <label>案件種別<select id="caseType"></select></label>
-        <label>次回連絡予定<input id="targetDate" type="date" /></label>
-        <button type="submit">追加</button>
-      </form>
-    </section>
+        <form id="storeForm" class="store-form">
+          <label>店名<input id="storeName" type="text" list="storeSuggestions" placeholder="例：ETERNAL / ACQUA / 店名の一部" autocomplete="off" required /></label>
+          <datalist id="storeSuggestions"></datalist>
+          <label>エリア<select id="storeArea"></select></label>
+          <label>担当者<select id="assignee"></select></label>
+          <label>連絡ステータス<select id="status"></select></label>
+          <label>案件種別<select id="caseType"></select></label>
+          <label>次回連絡予定<input id="targetDate" type="date" /></label>
+          <button type="submit">追加</button>
+        </form>
+      </section>
 
-    <section class="toolbar panel">
-      <label>店名検索<input id="searchText" type="search" placeholder="店名で検索" /></label>
-      <label>エリアで絞り込み<select id="filterArea"><option value="all">全エリア</option></select></label>
-      <label>担当者で絞り込み<select id="filterAssignee"><option value="all">全員</option></select></label>
-      <label>ステータスで絞り込み<select id="filterStatus"><option value="all">すべて</option></select></label>
-      <button id="resetData" class="danger" type="button">初期データに戻す</button>
-    </section>
+      <section class="toolbar panel">
+        <label>店名検索<input id="searchText" type="search" placeholder="店名で検索" /></label>
+        <label>エリアで絞り込み<select id="filterArea"><option value="all">全エリア</option></select></label>
+        <label>担当者で絞り込み<select id="filterAssignee"><option value="all">全員</option></select></label>
+        <label>ステータスで絞り込み<select id="filterStatus"><option value="all">すべて</option></select></label>
+        <button id="resetData" class="danger" type="button">初期データに戻す</button>
+      </section>
 
-    <section class="panel sync-panel">
-      <div>
-        <h2>スプレッドシート同期</h2>
-        <p id="syncStatus">未同期です</p>
-      </div>
-      <div class="sync-actions">
-        <button id="loadSheet" type="button">スプシから読込</button>
-        <button id="seedSheet" type="button">現在の店舗をスプシへ初期反映</button>
-      </div>
-    </section>
+      <section class="panel sync-panel">
+        <div>
+          <h2>スプレッドシート同期</h2>
+          <p id="syncStatus">未同期です</p>
+        </div>
+        <div class="sync-actions">
+          <button id="loadSheet" type="button">スプシから読込</button>
+          <button id="seedSheet" type="button">現在の店舗をスプシへ初期反映</button>
+        </div>
+      </section>
 
-    <main class="grid-layout">
       <section class="panel area-panel">
         <div class="section-heading">
           <div>
@@ -70,17 +75,19 @@
         </div>
         <div id="areaList" class="area-list"></div>
       </section>
+    </section>
 
-      <section class="panel gantt-panel">
+    <section id="ganttView" class="view-section">
+      <section class="panel gantt-panel full-width">
         <div class="section-heading">
           <div>
             <h2>進捗ガント</h2>
-            <p>未連絡 → 完了までの進捗を一覧化</p>
+            <p>連絡状況・撮影状態・案件種別を一覧で確認できます。</p>
           </div>
         </div>
         <div id="ganttChart" class="gantt-chart"></div>
       </section>
-    </main>
+    </section>
   </div>
 
   <script src="config.js"></script>
