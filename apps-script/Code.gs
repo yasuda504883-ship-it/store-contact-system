@@ -21,25 +21,36 @@ function doPost(e) {
 }
 
 function handleRequest(e) {
+  const params = e && e.parameter ? e.parameter : {};
+  const callback = params.callback || '';
+
   try {
     setupSheets();
-    const params = e.parameter || {};
-    const body = parseBody(e);
+    const body = parseBody(e, params);
     const action = body.action || params.action || 'read';
 
-    if (action === 'setup') return jsonResponse({ ok: true, message: 'setup complete' });
-    if (action === 'read') return jsonResponse(readAll());
-    if (action === 'upsertStore') return jsonResponse(upsertStore(body.store));
-    if (action === 'updateSales') return jsonResponse(updateSales(body.sales));
-    if (action === 'deleteStore') return jsonResponse(deleteStore(body.storeId));
+    let result;
+    if (action === 'setup') result = { ok: true, message: 'setup complete' };
+    else if (action === 'read') result = readAll();
+    else if (action === 'upsertStore') result = upsertStore(body.store);
+    else if (action === 'updateSales') result = updateSales(body.sales);
+    else if (action === 'bulkUpsert') result = bulkUpsert(body.stores || []);
+    else if (action === 'deleteStore') result = deleteStore(body.storeId);
+    else result = { ok: false, error: 'unknown action: ' + action };
 
-    return jsonResponse({ ok: false, error: 'unknown action: ' + action });
+    return outputResponse(result, callback);
   } catch (error) {
-    return jsonResponse({ ok: false, error: String(error && error.message ? error.message : error) });
+    return outputResponse({ ok: false, error: String(error && error.message ? error.message : error) }, callback);
   }
 }
 
-function parseBody(e) {
+function parseBody(e, params) {
+  if (params && params.data) {
+    try {
+      return JSON.parse(params.data);
+    } catch (error) {}
+  }
+
   if (!e || !e.postData || !e.postData.contents) return {};
   try {
     return JSON.parse(e.postData.contents);
@@ -48,7 +59,13 @@ function parseBody(e) {
   }
 }
 
-function jsonResponse(data) {
+function outputResponse(data, callback) {
+  if (callback) {
+    return ContentService
+      .createTextOutput(callback + '(' + JSON.stringify(data) + ');')
+      .setMimeType(ContentService.MimeType.JAVASCRIPT);
+  }
+
   return ContentService
     .createTextOutput(JSON.stringify(data))
     .setMimeType(ContentService.MimeType.JSON);
@@ -122,6 +139,16 @@ function sheetToObjects(sheetName) {
     headers.forEach((header, index) => item[header] = row[index]);
     return item;
   });
+}
+
+function bulkUpsert(stores) {
+  if (!Array.isArray(stores)) throw new Error('stores must be array');
+  stores.forEach((item) => {
+    if (item.store) upsertStore(item.store);
+    if (item.sales) updateSales(item.sales);
+  });
+  addLog('bulkUpsert', 'bulk', stores.length + '件');
+  return { ok: true, count: stores.length };
 }
 
 function upsertStore(store) {
