@@ -92,6 +92,25 @@ h2 { margin-bottom: 6px; }
 }
 .toolbar { grid-template-columns: 1.3fr 1fr 1fr 1fr auto; }
 
+.sync-panel {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  align-items: center;
+}
+.sync-panel p {
+  margin-bottom: 0;
+  color: var(--muted);
+  font-size: 13px;
+}
+.sync-actions {
+  display: flex;
+  gap: 10px;
+}
+.sync-actions button {
+  min-width: 180px;
+}
+
 label {
   display: grid;
   gap: 7px;
@@ -201,6 +220,8 @@ button.danger { background: #fee2e2; color: var(--danger); }
   .hero, .grid-layout, .store-form, .toolbar { grid-template-columns: 1fr; }
   .hero-stats { width: 100%; }
   .hero-card { flex: 1; text-align: left; }
+  .sync-panel { display: grid; }
+  .sync-actions { display: grid; grid-template-columns: 1fr; }
 }
 
 @media (max-width: 720px) {
