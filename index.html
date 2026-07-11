@@ -23,6 +23,7 @@
     <nav class="app-tabs" aria-label="ページ切り替え">
       <button class="tab-button active" type="button" data-view="stores">案件管理</button>
       <button class="tab-button" type="button" data-view="gantt">ガント</button>
+      <button class="tab-button" type="button" data-view="tasks">個人タスク</button>
     </nav>
 
     <section class="summary-grid" id="summaryCards"></section>
@@ -88,10 +89,52 @@
         <div id="ganttChart" class="gantt-chart"></div>
       </section>
     </section>
+
+    <section id="tasksView" class="view-section">
+      <section class="task-summary-grid" id="taskSummary"></section>
+
+      <section class="panel">
+        <div class="section-heading">
+          <div>
+            <h2>個人タスクを追加</h2>
+            <p>案件に紐づく作業と、個人的な作業をまとめて管理できます。</p>
+          </div>
+        </div>
+        <form id="taskForm" class="task-form">
+          <label>タスク名<input id="taskTitle" type="text" placeholder="例：PV初稿を作成" required /></label>
+          <label>担当者<select id="taskAssignee"></select></label>
+          <label>期限<input id="taskDueDate" type="date" /></label>
+          <label>優先度<select id="taskPriority"><option>高</option><option selected>中</option><option>低</option></select></label>
+          <label>関連店舗<input id="taskStore" type="text" list="taskStoreSuggestions" placeholder="任意" /></label>
+          <datalist id="taskStoreSuggestions"></datalist>
+          <label>メモ<input id="taskMemo" type="text" placeholder="任意" /></label>
+          <button type="submit">タスク追加</button>
+        </form>
+      </section>
+
+      <section class="panel task-toolbar">
+        <label>検索<input id="taskSearch" type="search" placeholder="タスク名・店舗・メモ" /></label>
+        <label>担当者<select id="taskFilterAssignee"><option value="all">全員</option></select></label>
+        <label>表示<select id="taskDateFilter"><option value="all">すべて</option><option value="today">今日</option><option value="overdue">期限切れ</option><option value="week">今週</option><option value="completed">完了済み</option></select></label>
+        <label>状態<select id="taskStatusFilter"><option value="all">すべて</option><option>未着手</option><option>進行中</option><option>完了</option></select></label>
+        <button id="clearCompletedTasks" class="danger" type="button">完了済み削除</button>
+      </section>
+
+      <section class="panel">
+        <div class="section-heading">
+          <div>
+            <h2>タスク一覧</h2>
+            <p id="taskVisibleCount">0件表示中</p>
+          </div>
+        </div>
+        <div id="taskList" class="task-list"></div>
+      </section>
+    </section>
   </div>
 
   <script src="config.js"></script>
   <script src="stores.js"></script>
   <script src="script.js"></script>
+  <script src="tasks.js"></script>
 </body>
 </html>
