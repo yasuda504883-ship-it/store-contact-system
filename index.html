@@ -30,12 +30,7 @@
 
     <section id="storesView" class="view-section active">
       <section class="panel add-panel">
-        <div class="section-heading">
-          <div>
-            <h2>案件を追加</h2>
-            <p>店舗候補は残したまま、実際に動かす案件だけを追加できます。</p>
-          </div>
-        </div>
+        <div class="section-heading"><div><h2>案件を追加</h2><p>店舗候補は残したまま、実際に動かす案件だけを追加できます。</p></div></div>
         <form id="storeForm" class="store-form">
           <label>店名<input id="storeName" type="text" list="storeSuggestions" placeholder="例：ETERNAL / ACQUA / 店名の一部" autocomplete="off" required /></label>
           <datalist id="storeSuggestions"></datalist>
@@ -57,35 +52,19 @@
       </section>
 
       <section class="panel sync-panel">
-        <div>
-          <h2>スプレッドシート同期</h2>
-          <p id="syncStatus">未同期です</p>
-        </div>
-        <div class="sync-actions">
-          <button id="loadSheet" type="button">スプシから読込</button>
-          <button id="seedSheet" type="button">現在の案件をスプシへ反映</button>
-        </div>
+        <div><h2>スプレッドシート同期</h2><p id="syncStatus">未同期です</p></div>
+        <div class="sync-actions"><button id="loadSheet" type="button">スプシから読込</button><button id="seedSheet" type="button">現在の案件をスプシへ反映</button></div>
       </section>
 
       <section class="panel area-panel">
-        <div class="section-heading">
-          <div>
-            <h2>エリア別 案件一覧</h2>
-            <p id="visibleCount">0件表示中</p>
-          </div>
-        </div>
+        <div class="section-heading"><div><h2>エリア別 案件一覧</h2><p id="visibleCount">0件表示中</p></div></div>
         <div id="areaList" class="area-list"></div>
       </section>
     </section>
 
     <section id="ganttView" class="view-section">
       <section class="panel gantt-panel full-width">
-        <div class="section-heading">
-          <div>
-            <h2>進捗ガント</h2>
-            <p>連絡状況・撮影状態・案件種別を一覧で確認できます。</p>
-          </div>
-        </div>
+        <div class="section-heading"><div><h2>進捗ガント</h2><p>連絡状況・撮影状態・案件種別を一覧で確認できます。</p></div></div>
         <div id="ganttChart" class="gantt-chart"></div>
       </section>
     </section>
@@ -93,20 +72,19 @@
     <section id="tasksView" class="view-section">
       <section class="task-summary-grid" id="taskSummary"></section>
 
+      <section class="panel sync-panel">
+        <div><h2>タスク同期</h2><p id="taskSyncStatus">端末内のタスクを表示しています。</p></div>
+        <div class="sync-actions"><button id="loadTasksFromSheet" type="button">最新を読込</button><button id="pushTasksToSheet" type="button">この端末から反映</button></div>
+      </section>
+
       <section class="panel">
-        <div class="section-heading">
-          <div>
-            <h2>個人タスクを追加</h2>
-            <p>案件に紐づく作業と、個人的な作業をまとめて管理できます。</p>
-          </div>
-        </div>
+        <div class="section-heading"><div><h2>個人タスクを追加</h2><p>案件に紐づく作業と、個人的な作業をまとめて管理できます。</p></div></div>
         <form id="taskForm" class="task-form">
           <label>タスク名<input id="taskTitle" type="text" placeholder="例：PV初稿を作成" required /></label>
           <label>担当者<select id="taskAssignee"></select></label>
           <label>期限<input id="taskDueDate" type="date" /></label>
           <label>優先度<select id="taskPriority"><option>高</option><option selected>中</option><option>低</option></select></label>
-          <label>関連店舗<input id="taskStore" type="text" list="taskStoreSuggestions" placeholder="任意" /></label>
-          <datalist id="taskStoreSuggestions"></datalist>
+          <label>関連店舗<select id="taskStore"><option value="">店舗なし</option></select></label>
           <label>メモ<input id="taskMemo" type="text" placeholder="任意" /></label>
           <button type="submit">タスク追加</button>
         </form>
@@ -121,12 +99,7 @@
       </section>
 
       <section class="panel">
-        <div class="section-heading">
-          <div>
-            <h2>タスク一覧</h2>
-            <p id="taskVisibleCount">0件表示中</p>
-          </div>
-        </div>
+        <div class="section-heading"><div><h2>タスク一覧</h2><p id="taskVisibleCount">0件表示中</p></div></div>
         <div id="taskList" class="task-list"></div>
       </section>
     </section>
