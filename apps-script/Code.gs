@@ -3,12 +3,14 @@ const SPREADSHEET_ID = '1sMh7LURDYJMbWArTMrC3XQuC2D2sYatql-IXY8wztXI';
 const SHEETS = {
   stores: '店舗マスター',
   sales: '営業管理',
+  tasks: '個人タスク',
   settings: '設定',
   logs: 'ログ',
 };
 
 const STORE_HEADERS = ['店舗ID', '店舗名', 'エリア', '契約状況', '店舗URL', 'Instagram', '作成日時', '更新日時'];
 const SALES_HEADERS = ['店舗ID', '担当者', 'ステータス', '撮影ステータス', '案件種別', '最終連絡日', '次回連絡日', 'メモ', '更新日時'];
+const TASK_HEADERS = ['タスクID', 'タスク名', '担当者', '期限', '優先度', '店舗ID', '店舗名', 'エリア', 'メモ', 'ステータス', '完了日時', '作成日時', '更新日時'];
 const SETTINGS_HEADERS = ['種別', '値', '並び順'];
 const LOG_HEADERS = ['日時', '操作', '店舗ID', '内容'];
 
@@ -25,11 +27,15 @@ function handleRequest(e) {
     let result;
     if (action === 'setup') result = { ok: true, message: 'setup complete' };
     else if (action === 'read') result = readAll();
+    else if (action === 'readTasks') result = { ok: true, tasks: sheetToObjects(SHEETS.tasks) };
     else if (action === 'upsertStore') result = upsertStore(body.store);
     else if (action === 'updateSales') result = updateSales(body.sales);
     else if (action === 'bulkUpsert') result = bulkUpsert(body.stores || []);
     else if (action === 'deleteStore') result = deleteStore(body.storeId);
     else if (action === 'clearAllCases') result = clearAllCases();
+    else if (action === 'upsertTask') result = upsertTask(body.task);
+    else if (action === 'bulkUpsertTasks') result = bulkUpsertTasks(body.tasks || []);
+    else if (action === 'deleteTask') result = deleteTask(body.taskId);
     else result = { ok: false, error: 'unknown action: ' + action };
     return outputResponse(result, callback);
   } catch (error) {
@@ -46,9 +52,7 @@ function parseBody(e, params) {
 }
 
 function outputResponse(data, callback) {
-  if (callback) {
-    return ContentService.createTextOutput(callback + '(' + JSON.stringify(data) + ');').setMimeType(ContentService.MimeType.JAVASCRIPT);
-  }
+  if (callback) return ContentService.createTextOutput(callback + '(' + JSON.stringify(data) + ');').setMimeType(ContentService.MimeType.JAVASCRIPT);
   return ContentService.createTextOutput(JSON.stringify(data)).setMimeType(ContentService.MimeType.JSON);
 }
 
@@ -58,6 +62,7 @@ function setupSheets() {
   const ss = getSpreadsheet();
   ensureSheet(ss, SHEETS.stores, STORE_HEADERS);
   ensureSheet(ss, SHEETS.sales, SALES_HEADERS);
+  ensureSheet(ss, SHEETS.tasks, TASK_HEADERS);
   ensureSheet(ss, SHEETS.settings, SETTINGS_HEADERS);
   ensureSheet(ss, SHEETS.logs, LOG_HEADERS);
   seedSettings();
@@ -73,9 +78,7 @@ function ensureSheet(ss, name, headers) {
     sheet.setFrozenRows(1);
     return sheet;
   }
-  headers.forEach((header) => {
-    if (!currentHeaders.includes(header)) sheet.getRange(1, sheet.getLastColumn() + 1).setValue(header);
-  });
+  headers.forEach((header) => { if (!currentHeaders.includes(header)) sheet.getRange(1, sheet.getLastColumn() + 1).setValue(header); });
   sheet.setFrozenRows(1);
   return sheet;
 }
@@ -93,7 +96,7 @@ function seedSettings() {
 }
 
 function readAll() {
-  return { ok: true, stores: sheetToObjects(SHEETS.stores), sales: sheetToObjects(SHEETS.sales), settings: sheetToObjects(SHEETS.settings) };
+  return { ok: true, stores: sheetToObjects(SHEETS.stores), sales: sheetToObjects(SHEETS.sales), tasks: sheetToObjects(SHEETS.tasks), settings: sheetToObjects(SHEETS.settings) };
 }
 
 function sheetToObjects(sheetName) {
@@ -143,6 +146,39 @@ function updateSales(sales) {
   else sheet.appendRow(values);
   addLog('updateSales', id, sales['ステータス'] || '');
   return { ok: true, sales };
+}
+
+function upsertTask(task) {
+  if (!task || !task['タスクID']) throw new Error('task.タスクID is required');
+  const sheet = getSpreadsheet().getSheetByName(SHEETS.tasks);
+  const id = String(task['タスクID']);
+  const row = findRowById(sheet, id);
+  const now = new Date();
+  const values = TASK_HEADERS.map((header) => {
+    if (header === '作成日時') return task[header] || now;
+    if (header === '更新日時') return now;
+    return task[header] || '';
+  });
+  if (row > 0) sheet.getRange(row, 1, 1, values.length).setValues([values]);
+  else sheet.appendRow(values);
+  addLog('upsertTask', id, task['タスク名'] || '');
+  return { ok: true, task };
+}
+
+function bulkUpsertTasks(tasks) {
+  if (!Array.isArray(tasks)) throw new Error('tasks must be array');
+  tasks.forEach(upsertTask);
+  addLog('bulkUpsertTasks', 'bulk', tasks.length + '件');
+  return { ok: true, count: tasks.length };
+}
+
+function deleteTask(taskId) {
+  if (!taskId) throw new Error('taskId is required');
+  const sheet = getSpreadsheet().getSheetByName(SHEETS.tasks);
+  const row = findRowById(sheet, String(taskId));
+  if (row > 0) sheet.deleteRow(row);
+  addLog('deleteTask', taskId, '');
+  return { ok: true, taskId };
 }
 
 function deleteStore(storeId) {
