@@ -48,7 +48,7 @@
         <label>エリアで絞り込み<select id="filterArea"><option value="all">全エリア</option></select></label>
         <label>担当者で絞り込み<select id="filterAssignee"><option value="all">全員</option></select></label>
         <label>ステータスで絞り込み<select id="filterStatus"><option value="all">すべて</option></select></label>
-        <button id="resetData" class="danger" type="button">全案件削除</button>
+        <button id="resetData" class="danger" type="button" hidden>全案件削除</button>
       </section>
 
       <section class="panel sync-panel">
@@ -109,7 +109,9 @@
 
   <script src="config.js"></script>
   <script src="stores.js"></script>
+  <script src="stores-extra.js"></script>
   <script src="script.js"></script>
+  <script src="case-enhancements.js"></script>
   <script src="tasks.js"></script>
   <script src="task-store-picker.js"></script>
 </body>
